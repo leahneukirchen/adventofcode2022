@@ -1,29 +1,34 @@
 #lang racket
 
-(let-values ([(stacks steps) (splitf-at (file->lines "day05")
-                                        (lambda (s) (not (equal? s ""))))])
+(define-values (stacks raw-steps)
+  (let ((lines (file->lines "day05")))
+    (split-at lines (index-of lines ""))))
 
-  (let* ([state (for/vector ([x (in-range 1 35 4)])
-                   (dropf (for/list ([y (in-range 0 (sub1 (length stacks)))])
-                            (string-ref (list-ref stacks y) x))
-                          (lambda (c) (equal? c #\space))))]
-         [steps (for/list ([line (cdr steps)])
-                  (remove* '(#f) (map string->number (string-split line " "))))]
-         [solve (lambda (state f)
-                  (for ([step steps])
-                    (let* ([n (first step)]
-                           [from (sub1 (second step))]
-                           [to (sub1 (third step))]
+(define initial-state
+  (for/vector ([x (in-range 1 35 4)])
+    (dropf (for/list ([stack (drop-right stacks 1)])
+             (string-ref stack x))
+           (curry equal? #\space))))
 
-                           [taken (take (vector-ref state from) n)]
-                           [left (drop (vector-ref state from) n)]
-                           [placed (append (f taken) (vector-ref state to))])
-                      (vector-set! state to placed)
-                      (vector-set! state from left)))
-                  (list->string (for/list ([s state])
-                                  (first s))))])
-    (displayln (solve (vector-copy state) reverse))
-    (displayln (solve (vector-copy state) identity))
-    ))
+(define steps
+  (for/list ([line (cdr raw-steps)])
+    (filter number? (map string->number (string-split line " ")))))
+
+(define (solve f)
+  (define state (vector-copy initial-state))
+  (for ([step steps])
+    (let* ([n (first step)]
+           [from (sub1 (second step))]
+           [to (sub1 (third step))]
+
+           [taken (take (vector-ref state from) n)]
+           [left (drop (vector-ref state from) n)]
+           [placed (append (f taken) (vector-ref state to))])
+      (vector-set! state to placed)
+      (vector-set! state from left)))
+  (list->string (for/list ([s state]) (first s))))
+
+(solve reverse)
+(solve identity)
 ; MQTPGLLDN
 ; LVZPSTTCZ
