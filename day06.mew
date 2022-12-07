@@ -1,0 +1,9 @@
+(for (n '(4 14))
+  (op=> (slurp "day06")
+        gen
+        (gwindow _ n)
+        (gmap cons _ (range n))
+        (gfilter (fun=> car unlist <>?) _)
+        app
+        cdr
+        prn))
