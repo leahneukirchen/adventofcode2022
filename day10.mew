@@ -1,0 +1,31 @@
+(define (gscan f i g)
+  (gcombine (lambda (x i)
+              (let ((v (f i x)))
+                (values v v)))
+            i
+            g))
+
+(def xs 
+  (op=> (lines "day10")
+        (gmap (fun (line)
+                (if (=? line "noop")
+                  (generator 0)
+                  (generator 0 (=> (~? line "-?\\d+") car string->number)))) _)
+        gconcatenate
+        (gscan + 1 _)
+        (into #(1) _)))
+
+(op=> (range 20 221 40)
+      (gmap (op * (get xs (dec _)) _) _)
+      (inject +)
+      prn)
+
+(op=> (gen xs)
+      (ggroup _ 40)
+      (gtake _ 6)
+      (gmap (fun (line)
+              (into "" (gmap (fun (a b)
+                               (if (<= (abs (- a b)) 1) #\@ #\space))
+                             (gen line) (range 0))))
+            _)
+      (generator-for-each print _))
