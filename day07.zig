@@ -30,7 +30,7 @@ pub fn main() !void {
         if (line.len == 0)
             break;
 
-        if (eql(u8, line[0..4], "$ cd")) {
+        if (std.mem.startsWith(u8, line, "$ cd")) {
             var parts = std.mem.tokenize(u8, line, " ");
             _ = parts.next();
             _ = parts.next();
@@ -46,7 +46,7 @@ pub fn main() !void {
                 if (dirline[0] == '$') break;
                 _ = lines.next();
                 
-                if (eql(u8, dirline[0..4], "dir ")) continue;
+                if (std.mem.startsWith(u8, dirline, "dir ")) continue;
 
                 var parts = std.mem.split(u8, dirline, " ");
 
