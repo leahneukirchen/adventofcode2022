@@ -1,0 +1,45 @@
+(def blueprints
+  (for/into '() (line (lines "day19"))
+    (match (for/into '() (n (gdrop (gmatch "[0-9]+" line) 1))
+             (string->number n))
+      ((a b c d e f) `(((0  0  0 ,a) (0 0 0 1))
+                       ((0  0  0 ,b) (0 0 1 0))
+                       ((0  0 ,d ,c) (0 1 0 0))
+                       ((0 ,f  0 ,e) (1 0 0 0))
+                       ((0  0  0  0) (0 0 0 0)))
+       ))))
+
+(def ((list-compare cmp) x y)
+  (rep comparing (x x y y)
+    (cond ((null? x) #f) ; same
+          ((cmp (car x) (car y)) #t)
+          ((cmp (car y) (car x)) #f)
+          (else (comparing (cdr x) (cdr y))))))
+
+(def (score> a b)
+  ((list-compare >) (app map + a) (app map + b)))
+
+(define (run blueprint t limit)
+  (loc (todo '(((0 0 0 0) (0 0 0 1))))
+    (for (n (range 0 t))
+      (set todo
+           (=> (accumulate (new-todo '())
+                 (for ((have make) todo)
+                   (for ((cost more) blueprint)
+                     (when (every >= have cost)
+                       (new-todo (list (map + have make (map - cost))
+                                       (map + make more)))))))
+               (op sort _ score>)
+               gen
+               (op gtake _ limit)
+               (op into '() _))))
+    (sort! todo score>)
+    (first todo)))
+
+(prn (for/inject + (b blueprints i (range 1))
+       (* i (caar (run b 24 500)))))
+;; 1294
+
+(prn (for/inject * (b blueprints i (range 0 3))
+       (caar (run b 32 2000))))
+;; 13640
